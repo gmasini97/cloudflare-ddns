@@ -1,12 +1,9 @@
-FROM alpine AS build
-WORKDIR /root/build
-COPY src ./src
-RUN apk add --no-cache build-base git curl-dev
-RUN git clone https://github.com/cesanta/mjson
-RUN gcc -o cfddns src/main.c -lcurl
-CMD ./cfddns
+FROM rust:1.40 as builder
+WORKDIR /usr/src/myapp
+COPY . .
+RUN cargo install --path .
 
-# FROM busybox:1.35.0-musl
-# WORKDIR /app
-# COPY --from=build /root/build/cfddns /app/cfddns
-# ENTRYPOINT ["./cfddns"]
+FROM debian:buster-slim
+RUN apt-get update && apt-get install -y extra-runtime-dependencies && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /usr/local/cargo/bin/myapp /usr/local/bin/myapp
+CMD ["myapp"]
