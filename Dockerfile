@@ -1,11 +1,25 @@
-FROM alpine:3.18 AS build
-WORKDIR /root/build
-RUN apk add --no-cache build-base curl-dev
-RUN apk add --no-cache curl-static nghttp2-static libidn2-static libunistring-static brotli-static openssl-libs-static zlib-static
-COPY ./src .
-RUN make clean build
+FROM --platform=linux/amd64 alpine:3.21 AS build
 
-FROM scratch
-COPY --from=build /root/build/build /app/cfddns
-COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-ENTRYPOINT ["/app/cfddns"]
+ENV ZIG_VERSION=0.13.0
+
+ARG TARGETPLATFORM
+RUN echo "Building for $TARGETPLATFORM"
+
+WORKDIR /root/build
+COPY . .
+
+RUN apk add --no-cache zig
+
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ] ; then zig build -Doptimize=ReleaseSmall; fi
+RUN if [ "$TARGETPLATFORM" = "linux/arm/v7" ] ; then zig build -Doptimize=ReleaseSmall -Dtarget=arm-linux-none -Dcpu=cortex_a7; fi
+
+# RUN ash .devcontainer/install-requirements.sh
+# RUN mkdir /zigtmp
+# RUN if [ "$TARGETPLATFORM" = "linux/amd64" ] ; then ash .devcontainer/install-zig.sh /zigtmp x86_64 0.13.0; fi
+# RUN if [ "$TARGETPLATFORM" = "linux/arm/v7" ] ; then ash .devcontainer/install-zig.sh /zigtmp armv7a 0.13.0; fi
+
+
+# FROM --platform=$TARGETPLATFORM scratch
+# COPY --from=build /root/build/zig-out/bin/cfddns /app/cfddns
+# COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# ENTRYPOINT ["/app/cfddns"]
