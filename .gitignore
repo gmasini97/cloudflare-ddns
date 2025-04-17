@@ -6,5 +6,6 @@ env
 src/build
 src/debug
 src/tmp.txt
+zig-cache
 .zig-cache
 zig-out

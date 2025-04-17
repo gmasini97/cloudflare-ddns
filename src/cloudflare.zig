@@ -22,7 +22,6 @@ const ListRecordsResult = struct {
 
 const ListRecordsResultRecord = struct {
     id: []const u8,
-    zone_id: []const u8,
     name: []const u8,
     content: []const u8,
 };
@@ -112,7 +111,7 @@ pub fn GetCommentedRecord(
                 .content = try std.fmt.allocPrint(allocator, "{s}", .{rec.content}),
                 .id = try std.fmt.allocPrint(allocator, "{s}", .{rec.id}),
                 .name = try std.fmt.allocPrint(allocator, "{s}", .{rec.name}),
-                .zone_id = try std.fmt.allocPrint(allocator, "{s}", .{rec.zone_id}),
+                .zone_id = try std.fmt.allocPrint(allocator, "{s}", .{zone_id}),
             };
         }
     }
